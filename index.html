@@ -2,45 +2,48 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>นำทางไป Google Maps</title>
+<title>ตรวจสอบตำแหน่ง</title>
 </head>
 <body>
 
-กำลังตรวจสอบตำแหน่งของคุณ...
+<h2>กำลังตรวจสอบตำแหน่ง…</h2>
+<div id="status">รอการอนุญาตตำแหน่ง</div>
 
 <script>
-function openGoogleMaps(lat, lng) {
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
+const BACKEND_URL = "https://your-backend.com/location"; // 🔴 เปลี่ยนเป็นของคุณ
 
-  // iPhone / iPad
-  if (/iPad|iPhone|iPod/.test(ua)) {
-    window.location.href = `https://maps.google.com/?q=${lat},${lng}`;
-    return;
-  }
-
-  // Android
-  if (/Android/.test(ua)) {
-    window.location.href = `geo:${lat},${lng}?q=${lat},${lng}`;
-    return;
-  }
-
-  // Desktop / อื่น ๆ
-  window.location.href = `https://www.google.com/maps?q=${lat},${lng}`;
+function sendLocation(lat, lng) {
+  fetch(BACKEND_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      latitude: lat,
+      longitude: lng,
+      time: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    })
+  })
+  .then(() => {
+    document.getElementById("status").innerHTML = "ส่งพิกัดเรียบร้อยแล้ว";
+  })
+  .catch(() => {
+    document.getElementById("status").innerHTML = "ส่งพิกัดไม่สำเร็จ";
+  });
 }
 
 if (!navigator.geolocation) {
-  alert("เบราว์เซอร์ไม่รองรับ GPS");
+  document.getElementById("status").innerHTML = "อุปกรณ์ไม่รองรับ GPS";
 } else {
   navigator.geolocation.getCurrentPosition(
-    function (pos) {
+    pos => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-
-      // เปิด Google Maps อัตโนมัติ
-      openGoogleMaps(lat, lng);
+      sendLocation(lat, lng);
     },
-    function () {
-      alert("ไม่สามารถดึงตำแหน่งได้ กรุณาอนุญาต GPS");
+    err => {
+      document.getElementById("status").innerHTML = "ไม่ได้รับอนุญาตตำแหน่ง";
     },
     { enableHighAccuracy: true }
   );
