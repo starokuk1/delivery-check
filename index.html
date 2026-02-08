@@ -2,116 +2,49 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>คำนวณระยะทางถึงจุดหมาย</title>
-
-<style>
-body {
-  font-family: sans-serif;
-  background: #f5f5f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-.card {
-  background: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  width: 320px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,.1);
-}
-button {
-  margin-top: 20px;
-  padding: 12px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  background: #007bff;
-  color: #fff;
-  cursor: pointer;
-}
-button:hover { background:#0056b3; }
-.small {
-  margin-top: 15px;
-  font-size: 12px;
-  color: #666;
-}
-#result {
-  margin-top: 15px;
-  font-size: 14px;
-}
-</style>
+<title>นำทางไป Google Maps</title>
 </head>
-
 <body>
 
-<div class="card">
-  <h2>คำนวณระยะทางถึงจุดหมาย</h2>
-  <p>กำลังตรวจสอบตำแหน่งของคุณ</p>
-
-  <!-- ปุ่ม (จะถูกซ่อนอัตโนมัติ) -->
-  <button id="openBrowser" style="display:none;">
-    เปิดด้วยเบราว์เซอร์
-  </button>
-
-  <div class="small">ต้องอนุญาตตำแหน่ง</div>
-  <div id="result"></div>
-</div>
+กำลังตรวจสอบตำแหน่งของคุณ...
 
 <script>
-const result = document.getElementById("result");
-const btn = document.getElementById("openBrowser");
+function openGoogleMaps(lat, lng) {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
 
-// ตรวจ LINE In-App
-const ua = navigator.userAgent.toLowerCase();
-const isLine = ua.includes("line");
-const isIOS = /iphone|ipad|ipod/.test(ua);
-const isAndroid = /android/.test(ua);
-
-// ถ้าเปิดใน LINE ให้โชว์ปุ่ม
-if (isLine) {
-  btn.style.display = "block";
-  btn.onclick = () => window.open(location.href, "_blank");
-}
-
-// Auto เรียกตำแหน่ง
-function getLocationAuto() {
-  if (!navigator.geolocation) {
-    result.innerHTML = "เบราว์เซอร์ไม่รองรับ GPS";
+  // iPhone / iPad
+  if (/iPad|iPhone|iPod/.test(ua)) {
+    window.location.href = `https://maps.google.com/?q=${lat},${lng}`;
     return;
   }
 
+  // Android
+  if (/Android/.test(ua)) {
+    window.location.href = `geo:${lat},${lng}?q=${lat},${lng}`;
+    return;
+  }
+
+  // Desktop / อื่น ๆ
+  window.location.href = `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+if (!navigator.geolocation) {
+  alert("เบราว์เซอร์ไม่รองรับ GPS");
+} else {
   navigator.geolocation.getCurrentPosition(
-    pos => {
+    function (pos) {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
 
-      result.innerHTML =
-        "พิกัดของคุณ<br>" +
-        "ละติจูด: " + lat + "<br>" +
-        "ลองจิจูด: " + lng;
-
       // เปิด Google Maps อัตโนมัติ
-      const mapUrl =
-        "https://www.google.com/maps?q=" + lat + "," + lng;
-      window.location.href = mapUrl;
+      openGoogleMaps(lat, lng);
     },
-    () => {
-      result.innerHTML = "ไม่สามารถดึงตำแหน่งได้";
+    function () {
+      alert("ไม่สามารถดึงตำแหน่งได้ กรุณาอนุญาต GPS");
     },
     { enableHighAccuracy: true }
   );
 }
-
-// แจ้งเตือนเฉพาะมือถือ + LINE
-setTimeout(() => {
-  if (isLine && (isIOS || isAndroid)) {
-    alert("กรุณาเปิดด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำ");
-  }
-  getLocationAuto();
-}, 2500);
 </script>
 
 </body>
