@@ -1,1 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>คำนวณระยะทาง</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .small {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
 
+<div class="card">
+  <h2>คำนวณระยะทางถึงจุดหมาย</h2>
+  <p>ระบบจะใช้ตำแหน่งปัจจุบันของคุณ</p>
+
+  <button onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
+
+  <div class="small">จำเป็นต้องอนุญาตการเข้าถึงตำแหน่ง</div>
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+function getLocation() {
+  const result = document.getElementById("result");
+
+  if (!navigator.geolocation) {
+    result.innerHTML = "อุปกรณ์นี้ไม่รองรับ GPS";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      result.innerHTML =
+        "ละติจูด: " + pos.coords.latitude + "<br>" +
+        "ลองจิจูด: " + pos.coords.longitude;
+    },
+    function() {
+      result.innerHTML = "กรุณาอนุญาตการเข้าถึงตำแหน่ง";
+    }
+  );
+}
+</script>
+
+</body>
+</html>
