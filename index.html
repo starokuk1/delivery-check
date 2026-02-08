@@ -131,6 +131,23 @@ function getLocation() {
   }
 })();
 </script>
+<script>
+setTimeout(function () {
 
+  var ua = navigator.userAgent || navigator.vendor || window.opera;
+
+  var isMobile =
+    /iPhone|iPad|iPod/i.test(ua) ||
+    /Android/i.test(ua);
+
+  var isLine = /Line/i.test(ua);
+
+  // แจ้งเฉพาะมือถือ + เปิดผ่าน LINE
+  if (isMobile && isLine) {
+    alert("กรุณาเปิดหน้านี้ด้วยเบราว์เซอร์ (Chrome / Safari)\nเพื่อความแม่นยำของพิกัด 📍");
+  }
+
+}, 2500); // หน่วง 2.5 วินาที
+</script>
 </body>
 </html>
