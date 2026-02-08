@@ -45,6 +45,8 @@
   </style>
 </head>
 <body>
+<button id="btnGetLocation" onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
+<div id="result"></div>
 
 <div class="card">
   <h2>คำนวณระยะทางถึงจุดหมาย</h2>
@@ -65,25 +67,30 @@ function getLocation() {
 }
 
 <script>
+<script>
 function getLocation() {
   const result = document.getElementById("result");
 
   if (!navigator.geolocation) {
-    result.innerHTML = "อุปกรณ์นี้ไม่รองรับ GPS";
+    result.innerHTML = "เบราว์เซอร์ไม่รองรับ GPS";
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
-    function(pos) {
+    function (pos) {
       result.innerHTML =
         "ละติจูด: " + pos.coords.latitude + "<br>" +
         "ลองจิจูด: " + pos.coords.longitude;
     },
-    function() {
+    function () {
       result.innerHTML = "กรุณาอนุญาตการเข้าถึงตำแหน่ง";
-    }
+    },
+    { enableHighAccuracy: true }
   );
 }
+</script>
+
+
 </script>
 <script>
 (function () {
@@ -149,5 +156,142 @@ setTimeout(function () {
 
 }, 2500); // หน่วง 2.5 วินาที
 </script>
+<script>
+(function () {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isLine = ua.toLowerCase().includes("line");
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+
+  // หน่วงเวลา 2.5 วิ
+  setTimeout(() => {
+
+    // ถ้าเปิดใน LINE
+    if (isLine) {
+      alert("กรุณาเปิดด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำของตำแหน่ง");
+
+      // iOS LINE เปิด Safari
+      if (isIOS) {
+        window.location.href = "https://google.com";
+      }
+
+      // Android LINE เปิด Chrome
+      if (isAndroid) {
+        window.location.href =
+          "intent://" +
+          window.location.host +
+          window.location.pathname +
+          "#Intent;scheme=https;package=com.android.chrome;end;";
+      }
+      return;
+    }
+
+    // ตรวจสอบว่า Browser รองรับ GPS ไหม
+    if (!navigator.geolocation) {
+      alert("เบราว์เซอร์นี้ไม่รองรับ GPS");
+      return;
+    }
+
+    // ขอพิกัดทันที (Auto)
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // เปิด Google Maps อัตโนมัติ
+        window.location.href =
+          "https://www.google.com/maps?q=" + lat + "," + lng;
+      },
+      function () {
+        alert("ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตตำแหน่ง");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+
+  }, 2500); // หน่วง 2.5 วิ
+})();
+</script>
+<script>
+<script>
+const DEST_LAT = 13.7563;   // 🔴 จุดหมายปลายทาง
+const DEST_LNG = 100.5018; // 🔴 แก้เป็นของคุณ
+
+function getLocation() {
+  const result = document.getElementById("result");
+  const btn = document.getElementById("btnGetLocation");
+
+  if (!navigator.geolocation) {
+    result.innerHTML = "เบราว์เซอร์ไม่รองรับ GPS";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      // ✅ ซ่อนปุ่ม
+      btn.style.display = "none";
+
+      // ✅ ส่งพิกัดเข้า Backend
+      fetch("https://your-backend.com/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: lat,
+          lng: lng,
+          userAgent: navigator.userAgent,
+          time: new Date().toISOString()
+        })
+      });
+
+      // ✅ เปิด Google Maps นำทาง
+      openNavigation(lat, lng);
+    },
+    function () {
+      result.innerHTML = "ไม่สามารถดึงตำแหน่งได้";
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+function openNavigation(lat, lng) {
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
+  let url = "";
+
+  if (isIOS) {
+    // iOS ใช้ Google Maps Web
+    url = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${DEST_LAT},${DEST_LNG}&travelmode=driving`;
+  } else if (isAndroid) {
+    // Android เปิด Google Maps App
+    url = `google.navigation:q=${DEST_LAT},${DEST_LNG}`;
+  } else {
+    // Desktop / อื่น ๆ
+    url = `https://www.google.com/maps/dir/${lat},${lng}/${DEST_LAT},${DEST_LNG}`;
+  }
+
+  setTimeout(() => {
+    window.location.href = url;
+  }, 2500); // ⏱ หน่วง 2.5 วิ
+}
+
+// 🔔 Auto-run เมื่อเปิดผ่าน LINE
+setTimeout(() => {
+  if (/Line/i.test(navigator.userAgent)) {
+    getLocation();
+  }
+}, 2000);
+</script>
+
 </body>
+<button id="btnGetLocation" onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
+<div id="result"></div>
+
 </html>
