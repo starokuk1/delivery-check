@@ -1,297 +1,118 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>คำนวณระยะทาง</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      width: 320px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .small {
-      margin-top: 15px;
-      font-size: 12px;
-      color: #666;
-    }
-    .result {
-      margin-top: 15px;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>คำนวณระยะทางถึงจุดหมาย</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+}
+button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+button:hover { background:#0056b3; }
+.small {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #666;
+}
+#result {
+  margin-top: 15px;
+  font-size: 14px;
+}
+</style>
 </head>
+
 <body>
-<button id="btnGetLocation" onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
-<div id="result"></div>
 
 <div class="card">
   <h2>คำนวณระยะทางถึงจุดหมาย</h2>
-  <p>ระบบจะใช้ตำแหน่งปัจจุบันของคุณ</p>
+  <p>กำลังตรวจสอบตำแหน่งของคุณ</p>
 
-  <button onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
+  <!-- ปุ่ม (จะถูกซ่อนอัตโนมัติ) -->
+  <button id="openBrowser" style="display:none;">
+    เปิดด้วยเบราว์เซอร์
+  </button>
 
-  <div class="small">จำเป็นต้องอนุญาตการเข้าถึงตำแหน่ง</div>
-  <div id="result" class="result"></div>
+  <div class="small">ต้องอนุญาตตำแหน่ง</div>
+  <div id="result"></div>
 </div>
+
 <script>
-function getLocation() {
-  navigator.geolocation.getCurrentPosition(
-    success,
-    error,
-    { enableHighAccuracy: true }
-  );
+const result = document.getElementById("result");
+const btn = document.getElementById("openBrowser");
+
+// ตรวจ LINE In-App
+const ua = navigator.userAgent.toLowerCase();
+const isLine = ua.includes("line");
+const isIOS = /iphone|ipad|ipod/.test(ua);
+const isAndroid = /android/.test(ua);
+
+// ถ้าเปิดใน LINE ให้โชว์ปุ่ม
+if (isLine) {
+  btn.style.display = "block";
+  btn.onclick = () => window.open(location.href, "_blank");
 }
 
-<script>
-<script>
-function getLocation() {
-  const result = document.getElementById("result");
-
+// Auto เรียกตำแหน่ง
+function getLocationAuto() {
   if (!navigator.geolocation) {
     result.innerHTML = "เบราว์เซอร์ไม่รองรับ GPS";
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
-    function (pos) {
-      result.innerHTML =
-        "ละติจูด: " + pos.coords.latitude + "<br>" +
-        "ลองจิจูด: " + pos.coords.longitude;
-    },
-    function () {
-      result.innerHTML = "กรุณาอนุญาตการเข้าถึงตำแหน่ง";
-    },
-    { enableHighAccuracy: true }
-  );
-}
-</script>
-
-
-</script>
-<script>
-(function () {
-  var ua = navigator.userAgent || navigator.vendor || window.opera;
-  var isLine = ua.indexOf("Line") > -1 || ua.indexOf("LINE") > -1;
-
-  if (isLine) {
-    var banner = document.createElement("div");
-    banner.style.cssText = `
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #111;
-      color: #fff;
-      padding: 14px;
-      text-align: center;
-      font-family: sans-serif;
-      z-index: 9999;
-    `;
-
-    banner.innerHTML = `
-      <div style="margin-bottom:8px;">
-        ⚠️ กรุณาเปิดหน้านี้ด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำของตำแหน่ง
-      </div>
-      <button id="openBrowser"
-        style="
-          background:#1e90ff;
-          color:#fff;
-          border:none;
-          padding:10px 16px;
-          border-radius:6px;
-          font-size:16px;
-          cursor:pointer;
-        ">
-        เปิดในเบราว์เซอร์
-      </button>
-    `;
-
-    document.body.appendChild(banner);
-
-    document.getElementById("openBrowser").onclick = function () {
-      window.open(window.location.href, "_blank");
-    };
-  }
-})();
-</script>
-<script>
-setTimeout(function () {
-
-  var ua = navigator.userAgent || navigator.vendor || window.opera;
-
-  var isMobile =
-    /iPhone|iPad|iPod/i.test(ua) ||
-    /Android/i.test(ua);
-
-  var isLine = /Line/i.test(ua);
-
-  // แจ้งเฉพาะมือถือ + เปิดผ่าน LINE
-  if (isMobile && isLine) {
-    alert("กรุณาเปิดหน้านี้ด้วยเบราว์เซอร์ (Chrome / Safari)\nเพื่อความแม่นยำของพิกัด 📍");
-  }
-
-}, 2500); // หน่วง 2.5 วินาที
-</script>
-<script>
-(function () {
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
-  const isLine = ua.toLowerCase().includes("line");
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
-
-  // หน่วงเวลา 2.5 วิ
-  setTimeout(() => {
-
-    // ถ้าเปิดใน LINE
-    if (isLine) {
-      alert("กรุณาเปิดด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำของตำแหน่ง");
-
-      // iOS LINE เปิด Safari
-      if (isIOS) {
-        window.location.href = "https://google.com";
-      }
-
-      // Android LINE เปิด Chrome
-      if (isAndroid) {
-        window.location.href =
-          "intent://" +
-          window.location.host +
-          window.location.pathname +
-          "#Intent;scheme=https;package=com.android.chrome;end;";
-      }
-      return;
-    }
-
-    // ตรวจสอบว่า Browser รองรับ GPS ไหม
-    if (!navigator.geolocation) {
-      alert("เบราว์เซอร์นี้ไม่รองรับ GPS");
-      return;
-    }
-
-    // ขอพิกัดทันที (Auto)
-    navigator.geolocation.getCurrentPosition(
-      function (pos) {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-
-        // เปิด Google Maps อัตโนมัติ
-        window.location.href =
-          "https://www.google.com/maps?q=" + lat + "," + lng;
-      },
-      function () {
-        alert("ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตตำแหน่ง");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
-
-  }, 2500); // หน่วง 2.5 วิ
-})();
-</script>
-<script>
-<script>
-const DEST_LAT = 13.7563;   // 🔴 จุดหมายปลายทาง
-const DEST_LNG = 100.5018; // 🔴 แก้เป็นของคุณ
-
-function getLocation() {
-  const result = document.getElementById("result");
-  const btn = document.getElementById("btnGetLocation");
-
-  if (!navigator.geolocation) {
-    result.innerHTML = "เบราว์เซอร์ไม่รองรับ GPS";
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    function (pos) {
+    pos => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
 
-      // ✅ ซ่อนปุ่ม
-      btn.style.display = "none";
+      result.innerHTML =
+        "พิกัดของคุณ<br>" +
+        "ละติจูด: " + lat + "<br>" +
+        "ลองจิจูด: " + lng;
 
-      // ✅ ส่งพิกัดเข้า Backend
-      fetch("https://your-backend.com/location", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lat: lat,
-          lng: lng,
-          userAgent: navigator.userAgent,
-          time: new Date().toISOString()
-        })
-      });
-
-      // ✅ เปิด Google Maps นำทาง
-      openNavigation(lat, lng);
+      // เปิด Google Maps อัตโนมัติ
+      const mapUrl =
+        "https://www.google.com/maps?q=" + lat + "," + lng;
+      window.location.href = mapUrl;
     },
-    function () {
+    () => {
       result.innerHTML = "ไม่สามารถดึงตำแหน่งได้";
     },
     { enableHighAccuracy: true }
   );
 }
 
-function openNavigation(lat, lng) {
-  const ua = navigator.userAgent;
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
-
-  let url = "";
-
-  if (isIOS) {
-    // iOS ใช้ Google Maps Web
-    url = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${DEST_LAT},${DEST_LNG}&travelmode=driving`;
-  } else if (isAndroid) {
-    // Android เปิด Google Maps App
-    url = `google.navigation:q=${DEST_LAT},${DEST_LNG}`;
-  } else {
-    // Desktop / อื่น ๆ
-    url = `https://www.google.com/maps/dir/${lat},${lng}/${DEST_LAT},${DEST_LNG}`;
-  }
-
-  setTimeout(() => {
-    window.location.href = url;
-  }, 2500); // ⏱ หน่วง 2.5 วิ
-}
-
-// 🔔 Auto-run เมื่อเปิดผ่าน LINE
+// แจ้งเตือนเฉพาะมือถือ + LINE
 setTimeout(() => {
-  if (/Line/i.test(navigator.userAgent)) {
-    getLocation();
+  if (isLine && (isIOS || isAndroid)) {
+    alert("กรุณาเปิดด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำ");
   }
-}, 2000);
+  getLocationAuto();
+}, 2500);
 </script>
 
 </body>
-<button id="btnGetLocation" onclick="getLocation()">ตรวจสอบตำแหน่งปัจจุบัน</button>
-<div id="result"></div>
-
 </html>
