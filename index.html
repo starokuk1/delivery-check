@@ -55,6 +55,14 @@
   <div class="small">จำเป็นต้องอนุญาตการเข้าถึงตำแหน่ง</div>
   <div id="result" class="result"></div>
 </div>
+<script>
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(
+    success,
+    error,
+    { enableHighAccuracy: true }
+  );
+}
 
 <script>
 function getLocation() {
@@ -76,6 +84,52 @@ function getLocation() {
     }
   );
 }
+</script>
+<script>
+(function () {
+  var ua = navigator.userAgent || navigator.vendor || window.opera;
+  var isLine = ua.indexOf("Line") > -1 || ua.indexOf("LINE") > -1;
+
+  if (isLine) {
+    var banner = document.createElement("div");
+    banner.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #111;
+      color: #fff;
+      padding: 14px;
+      text-align: center;
+      font-family: sans-serif;
+      z-index: 9999;
+    `;
+
+    banner.innerHTML = `
+      <div style="margin-bottom:8px;">
+        ⚠️ กรุณาเปิดหน้านี้ด้วยเบราว์เซอร์ (Chrome / Safari) เพื่อความแม่นยำของตำแหน่ง
+      </div>
+      <button id="openBrowser"
+        style="
+          background:#1e90ff;
+          color:#fff;
+          border:none;
+          padding:10px 16px;
+          border-radius:6px;
+          font-size:16px;
+          cursor:pointer;
+        ">
+        เปิดในเบราว์เซอร์
+      </button>
+    `;
+
+    document.body.appendChild(banner);
+
+    document.getElementById("openBrowser").onclick = function () {
+      window.open(window.location.href, "_blank");
+    };
+  }
+})();
 </script>
 
 </body>
