@@ -1,31 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>GPS Tracker</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
-  <h2>Test Firestore GPS</h2>
-  <button onclick="saveLocation()">Save Location</button>
 
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<h2>GPS Tracker</h2>
+<button onclick="saveLocation()">Save Location</button>
 
-    // 🔴 ใส่ config ของคุณตรงนี้
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_ID",
-      appId: "YOUR_APP_ID"
-    };
+<!-- แผนที่ -->
+<div id="map" style="height: 500px; width: 100%; margin-top:20px;"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    window.saveLocation = function () {
+<script type="module">
+  // ===== Firebase Import =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // ===== ใส่ค่า Firebase ของคุณตรงนี้ =====
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  // ===== Initialize Firebase ครั้งเดียว =====
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ===== บันทึก GPS =====
+  window.saveLocation = function() {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
@@ -36,68 +56,50 @@
           timestamp: serverTimestamp()
         });
 
-        alert("บันทึกข้อมูลแล้ว");
+        alert("บันทึกตำแหน่งเรียบร้อยแล้ว");
+        loadMap(); // รีโหลดหมุดใหม่
       });
-    };
-  </script>
-  <!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-<!-- แผนที่ -->
-<div id="map" style="height: 500px; width: 100%; margin-top:20px;"></div>
-
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  const firebaseConfig = {
-     apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_ID",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-async function loadMap() {
-  const querySnapshot = await getDocs(collection(db, "locations"));
-
-  let firstLocation = null;
-
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    if (!firstLocation) {
-      firstLocation = data;
+    } else {
+      alert("เบราว์เซอร์ไม่รองรับ GPS");
     }
-  });
+  };
 
-  if (!firstLocation) return;
+  // ===== โหลดแผนที่ =====
+  async function loadMap() {
+    const querySnapshot = await getDocs(collection(db, "locations"));
 
-  const map = L.map('map').setView(
-    [firstLocation.latitude, firstLocation.longitude], 
-    15
-  );
+    if (querySnapshot.empty) return;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+    let firstLocation = null;
+    const locations = [];
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    L.marker([data.latitude, data.longitude])
-      .addTo(map)
-      .bindPopup("พิกัด: " + data.latitude + ", " + data.longitude);
-  });
-}
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      locations.push(data);
+      if (!firstLocation) firstLocation = data;
+    });
 
-loadMap();
+    // สร้างแผนที่
+    const map = L.map('map').setView(
+      [firstLocation.latitude, firstLocation.longitude],
+      15
+    );
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // วางหมุดทั้งหมด
+    locations.forEach((data) => {
+      L.marker([data.latitude, data.longitude])
+        .addTo(map)
+        .bindPopup("พิกัด: " + data.latitude + ", " + data.longitude);
+    });
+  }
+
+  // โหลดแผนที่ตอนเปิดเว็บ
+  loadMap();
+
 </script>
 
 </body>
