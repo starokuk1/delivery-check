@@ -40,5 +40,65 @@
       });
     };
   </script>
+  <!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<!-- แผนที่ -->
+<div id="map" style="height: 500px; width: 100%; margin-top:20px;"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadMap() {
+  const querySnapshot = await getDocs(collection(db, "locations"));
+
+  let firstLocation = null;
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    if (!firstLocation) {
+      firstLocation = data;
+    }
+  });
+
+  if (!firstLocation) return;
+
+  const map = L.map('map').setView(
+    [firstLocation.latitude, firstLocation.longitude], 
+    15
+  );
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    L.marker([data.latitude, data.longitude])
+      .addTo(map)
+      .bindPopup("พิกัด: " + data.latitude + ", " + data.longitude);
+  });
+}
+
+loadMap();
+</script>
+
 </body>
 </html>
