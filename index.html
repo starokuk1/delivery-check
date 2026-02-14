@@ -1,54 +1,44 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ตรวจสอบตำแหน่ง</title>
+  <title>GPS Tracker</title>
 </head>
 <body>
+  <h2>Test Firestore GPS</h2>
+  <button onclick="saveLocation()">Save Location</button>
 
-<h2>กำลังตรวจสอบตำแหน่ง…</h2>
-<div id="status">รอการอนุญาตตำแหน่ง</div>
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<script>
-const BACKEND_URL = "https://your-backend.com/location"; // 🔴 เปลี่ยนเป็นของคุณ
+    // 🔴 ใส่ config ของคุณตรงนี้
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-function sendLocation(lat, lng) {
-  fetch(BACKEND_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      latitude: lat,
-      longitude: lng,
-      time: new Date().toISOString(),
-      userAgent: navigator.userAgent
-    })
-  })
-  .then(() => {
-    document.getElementById("status").innerHTML = "ส่งพิกัดเรียบร้อยแล้ว";
-  })
-  .catch(() => {
-    document.getElementById("status").innerHTML = "ส่งพิกัดไม่สำเร็จ";
-  });
-}
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-if (!navigator.geolocation) {
-  document.getElementById("status").innerHTML = "อุปกรณ์ไม่รองรับ GPS";
-} else {
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      sendLocation(lat, lng);
-    },
-    err => {
-      document.getElementById("status").innerHTML = "ไม่ได้รับอนุญาตตำแหน่ง";
-    },
-    { enableHighAccuracy: true }
-  );
-}
-</script>
+    window.saveLocation = function () {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
+        await addDoc(collection(db, "locations"), {
+          latitude: lat,
+          longitude: lng,
+          timestamp: serverTimestamp()
+        });
+
+        alert("บันทึกข้อมูลแล้ว");
+      });
+    };
+  </script>
 </body>
 </html>
